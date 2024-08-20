@@ -8,6 +8,8 @@ import json
 sys.stdout.reconfigure(encoding='utf-8')
 sys.stderr.reconfigure(encoding='utf-8')
 
+config_path = 'config.json'
+
 def get_latest_file_by_name(dir, name):
     """Findet die neueste Datei im Verzeichnis mit dem gegebenen Namen."""
     if not os.path.isdir(dir):
@@ -21,8 +23,9 @@ def get_latest_file_by_name(dir, name):
     print(f"Gefundene {name}-Datei: {latest_file}")
     return latest_file
 
-def parse_inhalt(kennung, lines):
+def parse_inhalt(kennung, string_content):
     """Parst die Zeilen nach einer bestimmten Kennung."""
+    lines = string_content.splitlines()
     for i, line in enumerate(lines):
         if line[3:7] == kennung:
             inhalt = line[7:].strip()
@@ -51,7 +54,7 @@ def parse_gdt(file, kennungen, trennzeichen):
         if gdt_content is None:
             sys.exit("Fehler: Keine geeignete Kodierung gefunden, um die GDT-Datei zu lesen.")
 
-        inhalte = [parse_inhalt(kennung, gdt_content.splitlines()) for kennung in kennungen]
+        inhalte = [parse_inhalt(kennung, gdt_content) for kennung in kennungen]
 
         if None in inhalte:
             sys.exit("Fehler beim Parsen der GDT-Datei. Nicht alle erforderlichen Informationen konnten extrahiert werden.")
@@ -67,7 +70,7 @@ def save_as(src, dst):
     """Speichert eine Datei unter einem neuen Namen."""
     try:
         shutil.copyfile(src, dst)
-        print(f"Datei gespeichert als: {dst}")
+        print(f"Datei gespeichert unter: {dst}")
     except FileNotFoundError:
         sys.exit(f"Die Datei '{src}' konnte nicht gefunden werden.")
     except Exception as e:
@@ -114,8 +117,6 @@ def main(config):
         delete(latest_pdf_file)
 
 if __name__ == "__main__":
-    config_path = 'config.json'
-
     try:
         with open(config_path, 'r', encoding='utf-8') as f:
             config = json.load(f)
