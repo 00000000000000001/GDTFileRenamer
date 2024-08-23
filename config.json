@@ -1,10 +1,9 @@
 {
+  "file_path": "/Users/jonas/.tomedoCache/temporaryFiles/proxy/*.pdf",
+  "gdt_path": "/Users/jonas/gdt_import/*.gdt",
   "kennungen": ["4001", "3102", "3101", "3103", "4002"],
   "trennzeichen": "-",
-  "input_path": "/Users/jonas/Documents/git/GDTFileRenamer/testfiles",
-  "gdt_path": "/Users/jonas/gdt_import",
   "export_path": "/Users/jonas/pdf-export",
-  "delete_gdt": true,
-  "delete_input": false,
-  "input_file": "*.pdf"
+  "delete_gdt": false,
+  "delete_input": false
 }

@@ -40,21 +40,21 @@ def parse_gdt(file, kennungen, trennzeichen):
     try:
         # Versuche, die Datei mit verschiedenen Kodierungen zu lesen
         encodings = ['utf-8', 'iso-8859-1', 'latin1']
-        gdt_content = None
+        gdt_str_content = None
         for enc in encodings:
             try:
                 with open(file, "r", encoding=enc) as f:
-                    gdt_content = f.read()
+                    gdt_str_content = f.read()
                 print(f"Datei erfolgreich mit Kodierung '{enc}' gelesen.")
                 break
             except UnicodeDecodeError:
                 print(f"Kodierung '{enc}' fehlgeschlagen, versuche nächste...")
                 continue
 
-        if gdt_content is None:
+        if gdt_str_content is None:
             sys.exit("Fehler: Keine geeignete Kodierung gefunden, um die GDT-Datei zu lesen.")
 
-        inhalte = [parse_inhalt(kennung, gdt_content) for kennung in kennungen]
+        inhalte = [parse_inhalt(kennung, gdt_str_content) for kennung in kennungen]
 
         if None in inhalte:
             sys.exit("Fehler beim Parsen der GDT-Datei. Nicht alle erforderlichen Informationen konnten extrahiert werden.")
@@ -91,9 +91,18 @@ def get_file_extension(filename):
     _, extension = os.path.splitext(filename)
     return extension
 
+def extract_path_and_filename(full_path):
+    # Extrahiere den Dateinamen aus dem Pfad
+    filename = os.path.basename(full_path)
+
+    # Extrahiere den Pfad ohne den Dateinamen
+    path = os.path.dirname(full_path)
+
+    return path, filename
+
 def main(config):
     """Hauptfunktion zur Verarbeitung und Export der Dateien."""
-    input_path = config["input_path"]
+    file_path = config["file_path"]
     gdt_path = config["gdt_path"]
     export_path = config["export_path"]
 
@@ -104,9 +113,11 @@ def main(config):
         except Exception as e:
             sys.exit(f"Fehler beim Erstellen des Exportverzeichnisses: {e}")
 
-    input_file = config["input_file"]
-    latest_pdf_file = get_latest_file_by_name(input_path, f"{input_file}")
-    latest_gdt_file = get_latest_file_by_name(gdt_path, "*.gdt")
+    file_tuple = extract_path_and_filename(file_path)
+    gdt_tuple = extract_path_and_filename(gdt_path)
+
+    latest_pdf_file = get_latest_file_by_name(file_tuple[0], f"{file_tuple[1]}")
+    latest_gdt_file = get_latest_file_by_name(gdt_tuple[0], f"{gdt_tuple[1]}")
 
     new_file_name = parse_gdt(latest_gdt_file, config['kennungen'], config['trennzeichen'])
     save_as(latest_pdf_file, os.path.join(export_path, f"{new_file_name}{get_file_extension(latest_pdf_file)}"))
