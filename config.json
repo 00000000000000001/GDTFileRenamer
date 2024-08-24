@@ -5,5 +5,6 @@
   "trennzeichen": "-",
   "export_path": "/Users/jonas/pdf-export",
   "delete_gdt": false,
-  "delete_input": false
+  "delete_file": false,
+  "postfix": "EV"
 }

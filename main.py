@@ -66,6 +66,13 @@ def parse_gdt(file, kennungen, trennzeichen):
     except Exception as e:
         sys.exit(f"Ein unerwarteter Fehler ist beim Parsen der GDT-Datei aufgetreten: {e}")
 
+def add_affix(name, prefix, postfix, trennzeichen):
+    if prefix:
+           name = f"{prefix}{trennzeichen}{name}"
+    if postfix:
+        name = f"{name}{trennzeichen}{postfix}"
+    return name
+
 def save_as(src, dst):
     """Speichert eine Datei unter einem neuen Namen."""
     try:
@@ -120,11 +127,12 @@ def main(config):
     latest_gdt_file = get_latest_file_by_name(gdt_tuple[0], f"{gdt_tuple[1]}")
 
     new_file_name = parse_gdt(latest_gdt_file, config['kennungen'], config['trennzeichen'])
+    new_file_name = add_affix(new_file_name, config.get('prefix', ''), config.get('postfix', ''), config['trennzeichen'])
     save_as(latest_pdf_file, os.path.join(export_path, f"{new_file_name}{get_file_extension(latest_pdf_file)}"))
 
     if config.get("delete_gdt", False):
         delete(latest_gdt_file)
-    if config.get("delete_input", False):
+    if config.get("delete_file", False):
         delete(latest_pdf_file)
 
 if __name__ == "__main__":
