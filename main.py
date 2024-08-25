@@ -66,14 +66,6 @@ def parse_gdt(file, kennungen):
     except Exception as e:
         sys.exit(f"Ein unerwarteter Fehler ist beim Parsen der GDT-Datei aufgetreten: {e}")
 
-def parse_affixe(prefix, postfix):
-    res = []
-    if prefix:
-        res.append(prefix)
-    if postfix:
-        res.append(postfix)
-    return res
-
 def save_as(src, dst):
     """Speichert eine Datei unter einem neuen Namen."""
     try:
@@ -111,7 +103,12 @@ def extract_path_and_filename(full_path):
 def join_name(gdt_file, config):
     suffixe = []
     suffixe.extend(parse_gdt(gdt_file, config['kennungen']))
-    suffixe.extend(parse_affixe(config.get('prefix', ''), config.get('postfix', '')))
+
+    if config.get('prefix', ''):
+        suffixe.insert(0, config.get('prefix', ''))
+    if config.get('postfix', ''):
+        suffixe.append(config.get('postfix', ''))
+
     return config['trennzeichen'].join(suffixe)
 
 def main(config):
