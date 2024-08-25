@@ -35,7 +35,7 @@ def parse_inhalt(kennung, string_content):
     print(f"Für Kennung {kennung} wurde keine Zuordnung gefunden")
     return None
 
-def parse_gdt(file, kennungen, trennzeichen):
+def parse_gdt(file, kennungen):
     """Parst die GDT-Datei und extrahiert die relevanten Informationen."""
     try:
         # Versuche, die Datei mit verschiedenen Kodierungen zu lesen
@@ -59,19 +59,20 @@ def parse_gdt(file, kennungen, trennzeichen):
         if None in inhalte:
             sys.exit("Fehler beim Parsen der GDT-Datei. Nicht alle erforderlichen Informationen konnten extrahiert werden.")
 
-        return trennzeichen.join(inhalte)
+        return inhalte
 
     except FileNotFoundError:
         sys.exit(f"Die Datei '{file}' konnte nicht gefunden werden.")
     except Exception as e:
         sys.exit(f"Ein unerwarteter Fehler ist beim Parsen der GDT-Datei aufgetreten: {e}")
 
-def add_affix(name, prefix, postfix, trennzeichen):
+def parse_affixe(prefix, postfix):
+    res = []
     if prefix:
-           name = f"{prefix}{trennzeichen}{name}"
+        res.append(prefix)
     if postfix:
-        name = f"{name}{trennzeichen}{postfix}"
-    return name
+        res.append(postfix)
+    return res
 
 def save_as(src, dst):
     """Speichert eine Datei unter einem neuen Namen."""
@@ -126,8 +127,12 @@ def main(config):
     latest_pdf_file = get_latest_file_by_name(file_tuple[0], f"{file_tuple[1]}")
     latest_gdt_file = get_latest_file_by_name(gdt_tuple[0], f"{gdt_tuple[1]}")
 
-    new_file_name = parse_gdt(latest_gdt_file, config['kennungen'], config['trennzeichen'])
-    new_file_name = add_affix(new_file_name, config.get('prefix', ''), config.get('postfix', ''), config['trennzeichen'])
+    suffixe = []
+    suffixe.extend(parse_gdt(latest_gdt_file, config['kennungen']))
+    suffixe.extend(parse_affixe(config.get('prefix', ''), config.get('postfix', '')))
+
+    new_file_name = config['trennzeichen'].join(suffixe)
+
     save_as(latest_pdf_file, os.path.join(export_path, f"{new_file_name}{get_file_extension(latest_pdf_file)}"))
 
     if config.get("delete_gdt", False):
