@@ -108,6 +108,12 @@ def extract_path_and_filename(full_path):
 
     return path, filename
 
+def join_name(gdt_file, config):
+    suffixe = []
+    suffixe.extend(parse_gdt(gdt_file, config['kennungen']))
+    suffixe.extend(parse_affixe(config.get('prefix', ''), config.get('postfix', '')))
+    return config['trennzeichen'].join(suffixe)
+
 def main(config):
     """Hauptfunktion zur Verarbeitung und Export der Dateien."""
     file_path = config["file_path"]
@@ -127,12 +133,7 @@ def main(config):
     latest_pdf_file = get_latest_file_by_name(file_tuple[0], f"{file_tuple[1]}")
     latest_gdt_file = get_latest_file_by_name(gdt_tuple[0], f"{gdt_tuple[1]}")
 
-    suffixe = []
-    suffixe.extend(parse_gdt(latest_gdt_file, config['kennungen']))
-    suffixe.extend(parse_affixe(config.get('prefix', ''), config.get('postfix', '')))
-
-    new_file_name = config['trennzeichen'].join(suffixe)
-
+    new_file_name = join_name(latest_gdt_file, config)
     save_as(latest_pdf_file, os.path.join(export_path, f"{new_file_name}{get_file_extension(latest_pdf_file)}"))
 
     if config.get("delete_gdt", False):
