@@ -1,10 +1,10 @@
 {
-  "file_path": "/Users/jonas/.tomedoCache/temporaryFiles/proxy/*.pdf",
-  "gdt_path": "/Users/jonas/gdt_import/*.gdt",
+  "file_path": "/Users/*/.tomedoCache/temporaryFiles/proxy/*.pdf",
+  "gdt_path": "/Users/*/gdt_import/*.gdt",
   "kennungen": ["4001", "3102", "3101", "3103", "4002"],
   "trennzeichen": "-",
   "export_path": "/Users/jonas/pdf-export",
   "delete_gdt": false,
   "delete_file": false,
-  "postfix": "EV"
+  "postfix": "🫥lwl"
 }

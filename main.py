@@ -12,8 +12,12 @@ config_path = 'config.json'
 
 def get_latest_file_by_name(dir, name):
     """Findet die neueste Datei im Verzeichnis mit dem gegebenen Namen."""
-    if not os.path.isdir(dir):
-        sys.exit(f"Das Verzeichnis '{dir}' wurde nicht gefunden.")
+    matching_paths = glob.glob(dir)
+    if not matching_paths:
+        sys.exit(f"Es wurden kein Pfad '{dir}' gefunden.")
+    # else:
+    #     for file in matching_paths:
+    #         print(f"Pfad gefunden: {file}")
 
     list_of_files = glob.glob(os.path.join(dir, name))
     if not list_of_files:
@@ -100,14 +104,18 @@ def extract_path_and_filename(full_path):
 
     return path, filename
 
-def join_name(gdt_file, config):
+def compile_name(gdt_file, config):
     suffixe = []
     suffixe.extend(parse_gdt(gdt_file, config['kennungen']))
 
-    if config.get('prefix', ''):
-        suffixe.insert(0, config.get('prefix', ''))
-    if config.get('postfix', ''):
-        suffixe.append(config.get('postfix', ''))
+    prefix = config.get('prefix', '')
+    if prefix:
+        print(f"Prefix gefunden: '{prefix}'")
+        suffixe.insert(0, prefix)
+    postfix = config.get('postfix', '')
+    if postfix:
+        print(f"Postfix gefunden: '{postfix}'")
+        suffixe.append(postfix)
 
     return config['trennzeichen'].join(suffixe)
 
@@ -130,7 +138,7 @@ def main(config):
     latest_pdf_file = get_latest_file_by_name(file_tuple[0], f"{file_tuple[1]}")
     latest_gdt_file = get_latest_file_by_name(gdt_tuple[0], f"{gdt_tuple[1]}")
 
-    new_file_name = join_name(latest_gdt_file, config)
+    new_file_name = compile_name(latest_gdt_file, config)
     save_as(latest_pdf_file, os.path.join(export_path, f"{new_file_name}{get_file_extension(latest_pdf_file)}"))
 
     if config.get("delete_gdt", False):
@@ -148,3 +156,5 @@ if __name__ == "__main__":
         sys.exit(f"Ein unerwarteter Fehler ist aufgetreten: {e}")
 
     main(config)
+
+    # python3.11 -m nuitka --standalone --onefile --follow-imports main.py
