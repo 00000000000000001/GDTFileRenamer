@@ -3,6 +3,7 @@ import os
 import shutil
 import sys
 import json
+import re
 
 # Setze die Standardkodierung für die Ausgabe auf UTF-8
 sys.stdout.reconfigure(encoding='utf-8')
@@ -10,14 +11,16 @@ sys.stderr.reconfigure(encoding='utf-8')
 
 config_path = 'config.json'
 
-def get_latest_file_by_name(dir, name):
-    """Findet die neueste Datei im Verzeichnis mit dem gegebenen Namen."""
+def find_dir(dir):
     matching_paths = glob.glob(dir)
     if not matching_paths:
         sys.exit(f"Es wurden kein Pfad '{dir}' gefunden.")
-    # else:
-    #     for file in matching_paths:
-    #         print(f"Pfad gefunden: {file}")
+    return matching_paths
+
+
+def get_latest_file_by_name(dir, name):
+    """Findet die neueste Datei im Verzeichnis mit dem gegebenen Namen."""
+    matching_paths = find_dir(dir)
 
     list_of_files = glob.glob(os.path.join(dir, name))
     if not list_of_files:
@@ -104,6 +107,64 @@ def extract_path_and_filename(full_path):
 
     return path, filename
 
+import re
+import json
+
+def apply_transformations(extracted_string, transformations):
+    if not isinstance(extracted_string, str):
+        raise ValueError("Der übergebene String muss ein gültiger Text sein.")
+
+    if not isinstance(transformations, list):
+        raise ValueError("Transformations müssen eine Liste von Transformationen sein.")
+
+    for transformation in transformations:
+        # Überprüfen, ob alle erforderlichen Schlüssel in der Transformation vorhanden sind
+        if not isinstance(transformation, dict):
+            raise TypeError("Jede Transformation muss ein Dictionary sein.")
+
+        if "pattern" not in transformation or "replacement" not in transformation:
+            raise KeyError("Jede Transformation muss die Schlüssel 'pattern' und 'replacement' enthalten.")
+
+        pattern = transformation["pattern"]
+        replacement = transformation["replacement"]
+
+        # Überprüfen, ob 'pattern' und 'replacement' gültige Strings sind
+        if not isinstance(pattern, str) or not isinstance(replacement, str):
+            raise ValueError("'pattern' und 'replacement' müssen Strings sein.")
+
+        try:
+            # Kompiliere das Muster, um die Anzahl der Gruppen zu ermitteln
+            compiled_pattern = re.compile(pattern)
+            max_group_num = compiled_pattern.groups
+
+            # Überprüfen, ob das 'replacement' gültige Gruppenreferenzen enthält
+            invalid_references = []
+            for ref in re.findall(r'\$(\d+)', replacement):
+                if int(ref) > max_group_num:
+                    invalid_references.append(ref)
+
+            if invalid_references:
+                raise ValueError(f"Ungültige Gruppenreferenzen im 'replacement': {' '.join(invalid_references)}. "
+                                 f"Das Muster enthält nur {max_group_num} Gruppen.")
+
+            # Ersetzen von $1, $2, $3 durch \1, \2, \3
+            replacement = re.sub(r'\$(\d)', r'\\\1', replacement)
+
+            # Anwenden der Transformation auf den extrahierten String
+            new_string = re.sub(compiled_pattern, replacement, extracted_string)
+
+            # Ausgabe, wenn die Transformation erfolgreich angewendet wurde
+            if new_string != extracted_string:
+                print(f"Transformation erfolgreich angewendet:\nVorher: {extracted_string}\nNachher: {new_string}")
+
+            extracted_string = new_string
+
+        except re.error as e:
+            # Fehlerbehandlung für ungültige reguläre Ausdrücke
+            raise ValueError(f"Ungültiger regulärer Ausdruck in der Transformation: {e}")
+
+    return extracted_string
+
 def compile_name(gdt_file, config):
     suffixe = []
     suffixe.extend(parse_gdt(gdt_file, config['kennungen']))
@@ -117,6 +178,11 @@ def compile_name(gdt_file, config):
         print(f"Postfix gefunden: '{postfix}'")
         suffixe.append(postfix)
 
+    transformations = config.get("transformations", None)
+    if transformations:
+        for i, s in enumerate(suffixe):
+            suffixe[i] = apply_transformations(s, transformations)
+
     return config['trennzeichen'].join(suffixe)
 
 def main(config):
@@ -125,7 +191,9 @@ def main(config):
     gdt_path = config["gdt_path"]
     export_path = config["export_path"]
 
-    if not os.path.exists(export_path):
+    matching_paths = find_dir(export_path)
+
+    if not matching_paths:
         try:
             os.makedirs(export_path)
             print(f"Exportverzeichnis '{export_path}' erstellt.")
@@ -139,7 +207,7 @@ def main(config):
     latest_gdt_file = get_latest_file_by_name(gdt_tuple[0], f"{gdt_tuple[1]}")
 
     new_file_name = compile_name(latest_gdt_file, config)
-    save_as(latest_pdf_file, os.path.join(export_path, f"{new_file_name}{get_file_extension(latest_pdf_file)}"))
+    save_as(latest_pdf_file, os.path.join(matching_paths[0], f"{new_file_name}{get_file_extension(latest_pdf_file)}"))
 
     if config.get("delete_gdt", False):
         delete(latest_gdt_file)

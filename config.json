@@ -1,10 +1,21 @@
 {
-  "file_path": "/Users/*/.tomedoCache/temporaryFiles/proxy/*.pdf",
-  "gdt_path": "/Users/*/gdt_import/*.gdt",
   "kennungen": ["4001", "3102", "3101", "3103", "4002"],
   "trennzeichen": "-",
-  "export_path": "/Users/jonas/pdf-export",
+  "file_path": "/Users/*/.tomedoCache/temporaryFiles/proxy/*.pdf",
+  "gdt_path": "/Users/*/gdt_import/*.gdt",
+  "export_path": "/Users/*/pdf-export",
   "delete_gdt": false,
-  "delete_file": false,
-  "postfix": "🫥lwl"
+  "delete_input": false,
+  "prefix": "EV",
+  "postfix": "",
+  "transformations": [
+    {
+      "pattern": "([0-9]{2})\\.([0-9]{2})\\.([0-9]{4})",
+      "replacement": "$3-$2-$1"
+    },
+    {
+      "pattern": "([0-9]{2})([0-9]{2})([0-9]{4})",
+      "replacement": "$3-$2-$1"
+    }
+  ]
 }
