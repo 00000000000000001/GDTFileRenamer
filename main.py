@@ -167,7 +167,7 @@ def apply_transformations(extracted_string, transformations):
 
 def compile_name(gdt_file, config):
     suffixe = []
-    suffixe.extend(parse_gdt(gdt_file, config['kennungen']))
+    suffixe.extend(parse_gdt(gdt_file, config.get('kennungen', ["3000"])))
 
     prefix = config.get('prefix', '')
     if prefix:
@@ -183,13 +183,13 @@ def compile_name(gdt_file, config):
         for i, s in enumerate(suffixe):
             suffixe[i] = apply_transformations(s, transformations)
 
-    return config['trennzeichen'].join(suffixe)
+    return config.get('trennzeichen', "").join(suffixe)
 
 def main(config):
     """Hauptfunktion zur Verarbeitung und Export der Dateien."""
-    file_path = config["file_path"]
-    gdt_path = config["gdt_path"]
-    export_path = config["export_path"]
+    file_path = config.get("file_path", os.getcwd() + "/*.*")
+    gdt_path = config.get("gdt_path", os.getcwd() + "/*.gdt")
+    export_path = config.get("export_path", os.getcwd())
 
     matching_paths = find_dir(export_path)
 
@@ -215,6 +215,7 @@ def main(config):
         delete(latest_pdf_file)
 
 if __name__ == "__main__":
+    config = {}
     try:
         with open(config_path, 'r', encoding='utf-8') as f:
             config = json.load(f)
@@ -222,7 +223,7 @@ if __name__ == "__main__":
         sys.exit(f"Fehler beim Laden der Konfigurationsdatei: {e}")
     except Exception as e:
         sys.exit(f"Ein unerwarteter Fehler ist aufgetreten: {e}")
-
-    main(config)
+    finally:
+        main(config)
 
     # python3.11 -m nuitka --standalone --onefile --follow-imports main.py
